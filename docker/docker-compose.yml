@@ -1,8 +1,7 @@
 version: '3.5'
 services:
   app:
-    image: toras9000/kallithea-mp:0.7.0-patch4
-    command: dumb-init bash /kallithea/assets/patched_startup.sh
+    image: toras9000/kallithea-mp:0.7.0-private1
     restart: unless-stopped
     ports:
       - "8800:5000"
@@ -10,16 +9,15 @@ services:
     volumes:
       - ./data/config:/kallithea/config
       - ./data/repos:/kallithea/repos
-      - ./assets:/kallithea/assets
-      - ./templates:/kallithea/templates
     environment:
       - TZ=Asia/Tokyo
       - KALLITHEA_ADMIN_USER=admin
       - KALLITHEA_ADMIN_PASS=admin123
       - KALLITHEA_ADMIN_MAIL=admin@example.com
       - KALLITHEA_LOCALE=ja_JP.UTF-8
-      - KALLITHEA_PATCH_DIR=/kallithea/assets/patches
-      - KALLITHEA_EXTENSIONS_TEMPLATE=/kallithea/templates/extensions.py
+      - KALLITHEA_EXTRA_FIELD=FORCE_ENABLE
+      - KALLITHEA_EXTENSIONS_TEMPLATE=REPLACE
+      - KALLITHEA_EXTERNAL_SSH_PORT=2200
       - KALLITHEA_WEBHOOK_ALLOW_ADDRS=http://sample-host-gateway:8801 https://sample-host-gateway:8801
     extra_hosts:
           - sample-host-gateway:host-gateway

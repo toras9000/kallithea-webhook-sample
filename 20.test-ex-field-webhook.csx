@@ -1,10 +1,6 @@
 #r "nuget: Lestaly, 0.51.0"
-#r "nuget: KallitheaApiClient, 0.7.0-lib.23"
+#r "nuget: KallitheaApiClient, 0.7.0-lib.23.private.1"
 #nullable enable
-using System.Net.Http;
-using System.Net.Http.Json;
-using System.Text.Json;
-using System.Threading;
 using KallitheaApiClient;
 using KallitheaApiClient.Utils;
 using Lestaly;
@@ -34,7 +30,7 @@ var settings = new
 
 await Paved.RunAsync(async () =>
 {
-    using var client = new CustomKallitheaClient(new Uri(settings.ServiceUrl, "/_admin/api"), settings.ApiKey);
+    using var client = new SimpleKallitheaClient(new Uri(settings.ServiceUrl, "/_admin/api"), settings.ApiKey);
 
     // create repogroup if not exist
     var repogroups = await client.GetRepoGroupsAsync();
@@ -75,21 +71,3 @@ await Paved.RunAsync(async () =>
     Console.WriteLine("push");
     await "git".args("-C", cloneDir.FullName, "push").silent().result().success();
 });
-
-record ExtraField(string key, string label, string desc, string type, string value);
-record CreateExtraFieldArgs(string repoid, string field_key, string? field_label = null, string? field_desc = null, string? field_value = null);
-record CreateExtraFieldResult(string msg, ExtraField extra_field);
-
-class CustomKallitheaClient : SimpleKallitheaClient
-{
-    public CustomKallitheaClient(Uri apiEntry, string? apiKey) : base(new ExtraKallitheaClient(apiEntry, apiKey)) { }
-    public Task<CreateExtraFieldResult> CreateRepoExtraFieldAsync(CreateExtraFieldArgs args, string? id = null, CancellationToken cancelToken = default)
-        => ((ExtraKallitheaClient)this.Client).CreateRepoExtraFieldAsync(args, id ?? TakeId(), cancelToken).UnwrapResponse();
-
-    public class ExtraKallitheaClient : KallitheaClient
-    {
-        public ExtraKallitheaClient(Uri apiEntry, string? apiKey = null, Func<HttpClient>? clientFactory = null) : base(apiEntry, apiKey, clientFactory) { }
-        public Task<ApiResponse<CreateExtraFieldResult>> CreateRepoExtraFieldAsync(CreateExtraFieldArgs args, string? id = null, CancellationToken cancelToken = default)
-            => CreateContext(id, "create_repo_extra_field", args).PostAsync<CreateExtraFieldResult>(cancelToken);
-    }
-}
